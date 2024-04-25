@@ -126,3 +126,28 @@ resource "aws_acm_certificate_validation" "aws_acm_certificate_validation" {
   certificate_arn         = aws_acm_certificate.acm_certificate.arn
   validation_record_fqdns = [for record in aws_route53_record.route53_record : record.fqdn]
 }
+
+resource "aws_dynamodb_table" "views-dynamodb-table" {
+  name     = "Web-Views"
+  hash_key = "views"
+  billing_mode = "PROVISIONED"
+  write_capacity = 5
+  read_capacity = 5
+
+  attribute {
+    name = "views"
+    type = "N"
+  }
+}
+
+resource "aws_dynamodb_table_item" "views" {
+  table_name = aws_dynamodb_table.views-dynamodb-table.name
+  hash_key   = aws_dynamodb_table.views-dynamodb-table.hash_key
+  
+  
+  item       = <<ITEM
+  {
+    "views": {"N": "1"}
+  }
+  ITEM
+}
