@@ -30,6 +30,20 @@
 								<li><a href="#" class="icon solid fa-envelope"><span class="label">Email</span></a></li>
 							</ul>
 						</nav>
+						<div class="counter-number">error</div> 
+						<script>
+							const counter = document.quervSelector(".counter-number");
+                            async function updateCounter() {
+                                let response = await fetch(
+                                    "https://qurj2kjjnfshy72uhbkkdd3qnu0gaplm.lambda-url.us-east-1.on.aws/"
+                                );
+                                let data = await response.json();
+                                console.log(data);
+                                counter.innerHTML = ' Views: ${data}';
+                            }
+
+                             updateCounter();
+						</script>
 					</header>
 
 				<!-- Footer -->

@@ -30,15 +30,9 @@ resource "aws_s3_bucket_website_configuration" "sergiogcrb-web-config" {
 }
 resource "aws_s3_object" "sergiogcrb-hosting-files" {
   bucket   = aws_s3_bucket.sgcrb.id
-  for_each = module.dir.files
-
-  key          = each.key
-  content_type = each.value.content_type
-
-  source  = each.value.source_path
-  content = each.value.content
-
-  etag = each.value.digests.md5
+  key          = "index.html"
+  content_type = "text/html"
+  source  = "/Users/sergiogutierrez/Desktop/cres/html5up-aerial/index.html"
 }
 resource "aws_cloudfront_distribution" "main_distribution" {
   origin {
@@ -128,26 +122,111 @@ resource "aws_acm_certificate_validation" "aws_acm_certificate_validation" {
 }
 
 resource "aws_dynamodb_table" "views-dynamodb-table" {
-  name     = "Web-Views"
-  hash_key = "views"
-  billing_mode = "PROVISIONED"
+  name           = "Web-Views"
+  hash_key       = "id"
+  billing_mode   = "PROVISIONED"
   write_capacity = 5
-  read_capacity = 5
+  read_capacity  = 5
 
   attribute {
-    name = "views"
-    type = "N"
+    name = "id"
+    type = "S"
   }
 }
 
 resource "aws_dynamodb_table_item" "views" {
   table_name = aws_dynamodb_table.views-dynamodb-table.name
   hash_key   = aws_dynamodb_table.views-dynamodb-table.hash_key
-  
-  
-  item       = <<ITEM
+
+
+  item = <<ITEM
   {
-    "views": {"N": "1"}
+     "id": {"S": "1"},
+     "views": {"N": "1"}
   }
   ITEM
+}
+resource "aws_iam_role" "iam_for_lambda" {
+  name = "iam_for_lambda"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_policy" "iam_policy_for_resume_project" {
+
+  name        = "aws_iam_policy_for_terraform_resume_project_policy"
+  path        = "/"
+  description = "AWS IAM Policy for managing the resume project role"
+  policy = jsonencode(
+    {
+      "Version" : "2012-10-17",
+      "Statement" : [
+        {
+          "Action" : [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+          ],
+          "Resource" : "arn:aws:logs:*:*:*",
+          "Effect" : "Allow"
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "dynamodb:UpdateItem",
+            "dynamodb:GetItem",
+            "dynamodb:PutItem"
+          ],
+          "Resource" : "arn:aws:dynamodb:us-east-1:471112822169:table/Web-Views"
+        },
+      ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "attach_iam_policy_to_iam_role" {
+  role       = aws_iam_role.iam_for_lambda.name
+  policy_arn = aws_iam_policy.iam_policy_for_resume_project.arn
+
+}
+data "archive_file" "lambda" {
+  type        = "zip"
+  source_file = "dbscript.py"
+  output_path = "dbscript_function_payload.zip"
+}
+
+resource "aws_lambda_function" "db_function" {
+  filename         = data.archive_file.lambda.output_path
+  function_name    = "db_function_name"
+  role             = aws_iam_role.iam_for_lambda.arn
+  handler          = "dbscript.lambda_handler"
+  source_code_hash = data.archive_file.lambda.output_base64sha256
+  runtime          = "python3.8"
+}
+
+resource "aws_lambda_function_url" "dbfunction_live" {
+  function_name      = aws_lambda_function.db_function.function_name
+  authorization_type = "NONE"
+
+  cors {
+    allow_credentials = true
+    allow_origins     = ["*"]
+    allow_methods     = ["*"]
+    allow_headers     = ["date", "keep-alive"]
+    expose_headers    = ["keep-alive", "date"]
+    max_age           = 86400
+  }
 }
