@@ -1,7 +1,5 @@
-
 resource "aws_s3_bucket" "terraform_state" {
   bucket        = "sergiogcr-tf-state"
-  force_destroy = true
 }
 
 resource "aws_s3_bucket_versioning" "terraform_bucket_versioning" {
@@ -26,15 +24,5 @@ resource "aws_dynamodb_table" "terraform_locks" {
   attribute {
     name = "LockID"
     type = "S"
-  }
-}
-
-terraform {
-  backend "s3" {
-    bucket         = "sergiogcr-tf-state"
-    key            = "terraform.tfstate"
-    region         = "us-east-1"
-    dynamodb_table = "terraform-state-locking"
-    encrypt        = true
   }
 }

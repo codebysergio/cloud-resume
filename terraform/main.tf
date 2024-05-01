@@ -1,3 +1,12 @@
+terraform {
+  backend "s3" {
+    bucket         = "sergiogcr-tf-state"
+    key            = "terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-state-locking"
+    encrypt        = true
+  }
+}
 resource "aws_s3_bucket" "sgcrb" {
   bucket = var.bucket_name
 }
