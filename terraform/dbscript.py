@@ -1,26 +1,9 @@
-import json 
 import boto3
-dynamodb = boto3.resource ('dynamodb')
-table = dynamodb.table('web-views')
-def lambda_handler (event, context):
-    response = table.get_item(
-        Key={
-            'id': '1'
-        }
-    )
-    views = response ['Item' ]['views']
-    views = views + 1
-    print(views)
-    response = table.put_item(Item={
-    'id': '1',
-    'views': views
-    })
+dynamodb = boto3.resource ('dynamodb',region_name='us-east-1')
+table = dynamodb.Table('Web-Views')
+response = table.get_item(
+    Key = {
+        'id': '1'
+})
 
-    return {
-        'statusCode': 200,
-        'headers':{
-            'content-type': 'application/json'
-        },
-        'body': views
-    }
-    
+print(response['Item'])
