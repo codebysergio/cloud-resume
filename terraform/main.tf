@@ -7,15 +7,28 @@ terraform {
     encrypt        = true
   }
 }
-resource "aws_s3_bucket" "sgcrb" {
+resource "aws_s3_bucket" "sergiog-cloud-resume" {
   bucket = var.bucket_name
 }
-resource "aws_s3_bucket_acl" "sergiogcrb-acl" {
-  bucket = aws_s3_bucket.sgcrb.id
+resource "aws_s3_bucket_public_access_block" "resume-bucket" {
+  bucket              = aws_s3_bucket.sergiog-cloud-resume.id
+  block_public_acls   = false
+  block_public_policy = false
+}
+resource "aws_s3_bucket_acl" "cloud-resume-acl" {
+  bucket = aws_s3_bucket.sergiog-cloud-resume.id
   acl    = "public-read"
 }
-resource "aws_s3_bucket_policy" "sergiogcrb-policy" {
-  bucket = aws_s3_bucket.sgcrb.id
+resource "aws_s3_bucket_ownership_controls" "example" {
+  bucket = aws_s3_bucket.sergiog-cloud-resume.id
+
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+
+  }
+}
+resource "aws_s3_bucket_policy" "cloud-resume-policy" {
+  bucket = aws_s3_bucket.sergiog-cloud-resume.id
 
   policy = jsonencode({
     "Version" : "2012-10-17",
@@ -24,24 +37,24 @@ resource "aws_s3_bucket_policy" "sergiogcrb-policy" {
         "Effect" : "Allow",
         "Principal" : "*",
         "Action" : "s3:GetObject",
-        "Resource" : "arn:aws:s3:::sergiogcrb/*"
+        "Resource" : "arn:aws:s3:::sergiog-cloud/*"
 
       }
     ]
   })
 }
-resource "aws_s3_bucket_website_configuration" "sergiogcrb-web-config" {
-  bucket = aws_s3_bucket.sgcrb.id
+resource "aws_s3_bucket_website_configuration" "cloud-resume-web-config" {
+  bucket = aws_s3_bucket.sergiog-cloud-resume.id
 
   index_document {
     suffix = "index.html"
   }
 }
-resource "aws_s3_object" "sergiogcrb-hosting-files" {
-  bucket   = aws_s3_bucket.sgcrb.id
+resource "aws_s3_object" "cloud-resume-hosting-files" {
+  bucket       = aws_s3_bucket.sergiog-cloud-resume.id
   key          = "index.html"
   content_type = "text/html"
-  source  = "/Users/sergiogutierrez/Desktop/cres/html5up-aerial/index.html"
+  source       = "/Users/sergiogutierrez/Desktop/cres/html5up-aerial/index.html"
 }
 resource "aws_cloudfront_distribution" "main_distribution" {
   origin {
@@ -219,7 +232,7 @@ data "archive_file" "lambda" {
 
 resource "aws_lambda_function" "db_function" {
   filename         = data.archive_file.lambda.output_path
-  function_name    = "db_function_name"
+  function_name    = "db_function"
   role             = aws_iam_role.iam_for_lambda.arn
   handler          = "dbscript.lambda_handler"
   source_code_hash = data.archive_file.lambda.output_base64sha256
