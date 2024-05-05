@@ -108,6 +108,7 @@ resource "aws_route53_zone" "primary_hosted_zone" {
 data "aws_route53_zone" "route53_zone" {
   name         = var.domain_name
   private_zone = false
+  depends_on   = [aws_route53_zone.primary_hosted_zone]
 }
 
 resource "aws_route53_record" "route53_record" {
