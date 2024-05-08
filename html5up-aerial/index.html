@@ -30,20 +30,7 @@
 								<li><a href="#" class="icon solid fa-envelope"><span class="label">Email</span></a></li>
 							</ul>
 						</nav>
-						<div class="counter-number">error</div> 
-						<script>
-							const counter = document.quervSelector(".counter-number");
-                            async function updateCounter() {
-                                let response = await fetch(
-                                    "https://qurj2kjjnfshy72uhbkkdd3qnu0gaplm.lambda-url.us-east-1.on.aws/"
-                                );
-                                let data = await response.json();
-                                console.log(data);
-                                counter.innerHTML = ' Views: ${data}';
-                            }
-
-                             updateCounter();
-						</script>
+						<p id="counter"></p>
 					</header>
 
 				<!-- Footer -->
@@ -58,5 +45,6 @@
 			window.ontouchmove = function() { return false; }
 			window.onorientationchange = function() { document.body.scrollTop = 0; }
 		</script>
+		<script src="index.js"></script>
 	</body>
 </html>

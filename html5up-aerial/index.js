@@ -1,11 +1,19 @@
-const counter = document.quervSelector(".counter-number");
 async function updateCounter() {
-    let response = await fetch(
-        "https://ko23zv3jgl3tzp4tgnf56olyzm0yogzb.lambda-url.us-east-1.on.aws/"
-    );
-    let data = await response.json();
-    console.log(data);
-    counter.innerHTML = ' Views: ${data}';
+    try{
+        const response = await fetch("https://a2asabsi7pi2mpzswfynfkk56a0syiwm.lambda-url.us-east-1.on.aws/");
+        if(!response.ok){
+            throw new error("not found");
+        }
+        const data = await response.json();
+        console.log(data.body);
+        const views = ("Views = ", data.body);
+        document.getElementById("counter").innerHTML = views
+
+    }
+    catch(error){
+        console.error(error);
+
+    }
 }
 
 updateCounter();
