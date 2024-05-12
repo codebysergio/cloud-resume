@@ -10,6 +10,12 @@ resource "aws_s3_bucket_acl" "cloud-resume-acl" {
   bucket = aws_s3_bucket.sergiog-cloud-resume.id
   acl    = "public-read"
 }
+resource "aws_s3_bucket_versioning" "versioning_example" {
+  bucket = aws_s3_bucket.sergiog-cloud-resume.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
 resource "aws_s3_bucket_ownership_controls" "example" {
   bucket = aws_s3_bucket.sergiog-cloud-resume.id
 
@@ -26,10 +32,13 @@ resource "aws_s3_bucket_policy" "cloud-resume-policy" {
     "Statement" : [
       {
         "Effect" : "Allow",
-        "Principal" : "*",
-        "Action" : "s3:GetObject",
-        "Resource" : "arn:aws:s3:::sergiog-cloud/*"
-
+        "Principal" : {
+          "AWS": [
+             "arn:aws:iam::471112822169:user/github-to-s3-auth-sergiogcloud"
+          ]
+        }
+        "Action" : "s3:*",
+        "Resource" :"arn:aws:s3:::sergiog-cloud/*",
       }
     ]
   })
